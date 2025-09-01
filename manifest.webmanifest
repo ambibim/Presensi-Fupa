@@ -1,0 +1,20 @@
+{
+  "name": "Presensi Online",
+  "short_name": "Presensi",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FFF59D",
+  "theme_color": "#FBC02D",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192.png?text=Presensi",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512.png?text=Presensi",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

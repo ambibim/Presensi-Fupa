@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Presensi Online – Login</title>
+
+  <!-- Google Material Symbols -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ————————————————————————————————————
+       Global Reset + Body Styles
+       ———————————————————————————————————— */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body, html {
+      height:100%;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #FFF59D, #FDD835);
+      overflow:hidden;
+    }
+
+    /* ————————————————————————————————————
+       Falling Leaves Animation
+       ———————————————————————————————————— */
+    .leaf {
+      position: fixed;
+      top: -10%;
+      font-size: 2rem;
+      opacity: 0.8;
+      animation-name: fall;
+      animation-duration: var(--duration);
+      animation-timing-function: linear;
+      animation-delay: var(--delay);
+      animation-iteration-count: infinite;
+      pointer-events: none;
+    }
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(120vh) rotate(360deg); }
+    }
+
+    /* ————————————————————————————————————
+       Login Form Container
+       ———————————————————————————————————— */
+    .login-container {
+      position: relative;
+      width: 90%;
+      max-width: 360px;
+      margin: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.85);
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      padding: 2rem;
+      text-align: center;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 8px rgba(255,235,59,0.6); }
+      to   { box-shadow: 0 0 20px rgba(255,193,7,0.8); }
+    }
+
+    .login-container h1 {
+      margin-bottom: 1rem;
+      color: #444;
+    }
+
+    .input-group {
+      position: relative;
+      margin: 1rem 0;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .input-group .material-symbols-outlined {
+      position: absolute;
+      right: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #777;
+    }
+
+    .btn-login {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.75rem;
+      background: #FFEB3B;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #444;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-login:hover {
+      background: #FBC02D;
+    }
+
+    .forgot {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .forgot a { color: #f57f17; text-decoration: none; }
+
+    /* ————————————————————————————————————
+       Loading Overlay + Spinner
+       ———————————————————————————————————— */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .spinner {
+      width: 50px; height: 50px;
+      border: 6px solid rgba(255,255,255,0.3);
+      border-top-color: #FFF59D;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Falling Leaves -->
+  <script>
+    // Create multiple leaves with random delay & duration
+    for (let i = 0; i < 12; i++) {
+      const leaf = document.createElement('div');
+      leaf.className = 'leaf';
+      leaf.style.setProperty('--delay', `${Math.random()*-20}s`);
+      leaf.style.setProperty('--duration', `${8 + Math.random()*8}s`);
+      leaf.style.left = `${Math.random()*100}vw`;
+      leaf.textContent = '🍂';
+      document.body.appendChild(leaf);
+    }
+  </script>
+
+  <!-- Login Box -->
+  <div class="login-container">
+    <h1>Presensi Online</h1>
+    <div class="input-group">
+      <input id="email" type="email" placeholder="Email" required />
+      <span class="material-symbols-outlined">mail</span>
+    </div>
+    <div class="input-group">
+      <input id="password" type="password" placeholder="Password" required />
+      <span id="togglePwd" class="material-symbols-outlined">visibility</span>
+    </div>
+    <button id="btnLogin" class="btn-login">
+      <span class="material-symbols-outlined">login</span>&nbsp;Login
+    </button>
+    <p class="forgot">
+      Lupa sandi? <a href="mailto:admin@fupa.id">Hubungi Admin</a>
+    </p>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ————————————————————————————————————
+    // Firebase Configuration & Init
+    // ————————————————————————————————————
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-xV3iuv-KAE_-xhiXZSPCTn54EgYUD40",
+      authDomain: "presensi-online-f0964.firebaseapp.com",
+      projectId: "presensi-online-f0964",
+      storageBucket: "presensi-online-f0964.firebasestorage.app",
+      messagingSenderId: "895308244103",
+      appId: "1:895308244103:web:ab240a8be762a44f49c422",
+      measurementId: "G-E9C7760C2S"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    // ————————————————————————————————————
+    // Role UIDs
+    // ————————————————————————————————————
+    const adminUIDs = [
+      "odO8ZtMgTKeao0SDuy9L3gUmkx02",
+      "ujHnWTnftGh6scTI8cQyN8fhmOB2"
+    ];
+    const staffUIDs = [
+      "HD4EsoL2ykgwQeBl6RP1WfrcCKw1",
+      "FD69ceLyhqedlBfhbLb2I0TljY03",
+      "h5aw8ppJSgP9PQM0Oc2HtugUAH02"
+    ];
+
+    // ————————————————————————————————————
+    // Show/Hide Password Toggle
+    // ————————————————————————————————————
+    const pwdInput = document.getElementById('password');
+    const togglePwd = document.getElementById('togglePwd');
+    togglePwd.addEventListener('click', ()=>{
+      const type = pwdInput.type === 'password'? 'text':'password';
+      pwdInput.type = type;
+      togglePwd.textContent = type==='password'? 'visibility':'visibility_off';
+    });
+
+    // ————————————————————————————————————
+    // Login Handler
+    // ————————————————————————————————————
+    const btnLogin = document.getElementById('btnLogin');
+    const loading  = document.getElementById('loading');
+
+    btnLogin.addEventListener('click', async ()=>{
+      const email = document.getElementById('email').value.trim();
+      const pass  = pwdInput.value.trim();
+      if (!email||!pass) {
+        alert('Email dan password wajib diisi.');
+        return;
+      }
+
+      // show loader
+      loading.style.display = 'flex';
+
+      try {
+        const { user } = await firebase.auth().signInWithEmailAndPassword(email, pass);
+        const uid = user.uid;
+
+        // Role check & redirect
+        if (adminUIDs.includes(uid)) {
+          window.location.href = 'admin.html';
+        }
+        else if (staffUIDs.includes(uid)) {
+          window.location.href = 'karyawan.html';
+        }
+        else {
+          alert('Akun Anda belum punya peran. Hubungi admin.');
+          firebase.auth().signOut();
+        }
+      }
+      catch (err) {
+        console.error(err);
+        alert('Login gagal: ' + err.message);
+      }
+      finally {
+        loading.style.display = 'none';
+      }
+    });
+
+    // ————————————————————————————————————
+    // Prevent direct URL access
+    // ————————————————————————————————————
+    firebase.auth().onAuthStateChanged(user=>{
+      if (user) {
+        // already logged in? redirect based on role
+        const uid = user.uid;
+        if (adminUIDs.includes(uid)) location.href='admin.html';
+        if (staffUIDs.includes(uid)) location.href='karyawan.html';
+      }
+    });
+  </script>
+</body>
+</html>
